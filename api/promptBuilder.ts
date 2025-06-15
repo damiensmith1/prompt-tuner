@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { Redis } from '@upstash/redis';
 
 export const config = {
   runtime: 'edge',
@@ -7,6 +8,24 @@ export const config = {
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+export async function rateLimit(ip: string, limit = 20, windowSec = 3600) {
+  const key = `rl:${ip}`;
+  const count = await redis.incr(key);
+  if (count === 1) {
+    await redis.expire(key, windowSec); // 1hr window
+  }
+  if (count > limit) {
+    return { allowed: false, remaining: 0 };
+  }
+  return { allowed: true, remaining: limit - count };
+}
+
 
 export type ActionItem =
   | { type: 'choice'; label: string; options: string[] }
@@ -119,9 +138,19 @@ function systemPrompt_generatePrompt(userPrompt: string, enhancements: Record<st
 
 export default async function handler(req: Request): Promise<Response> {
   const body = await req.json();
+
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const { allowed } = await rateLimit(ip);
+
+  if (!allowed) {
+    return new Response("Rate limit exceeded (10 per hour)", { status: 429 });
+  }
+
   const { mode, prompt, enhancements } = body;
 
+
   if (!prompt) return jsonError(400, 'Missing prompt');
+  
 
   if (mode === 'analyze') {
     const systemPrompt = systemPrompt_analyzePrompt(prompt);

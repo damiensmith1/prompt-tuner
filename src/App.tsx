@@ -17,6 +17,8 @@ export default function PromptBuilder() {
   const [loading, setLoading] = useState(false);
   const [showFix, setShowFix] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
 
   const analyze = async () => {
     setLoading(true);
@@ -32,6 +34,18 @@ export default function PromptBuilder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'analyze', prompt }),
     });
+
+    if (!res.ok) {
+      if (res.status === 429) {
+        setErrorMsg("You've reached the limit of 10 prompts per hour. Please try again later.");
+      } else {
+        const { error } = await res.json().catch(() => ({ error: 'Unexpected error occurred.' }));
+        setErrorMsg(error || 'An error occurred while analyzing your prompt.');
+      }
+      setLoading(false);
+      return;
+    }
+
     const data = await res.json();
     setScore(data.score ?? null);
     setSuggestions(Array.isArray(data.critique) ? data.critique : []);
@@ -52,6 +66,17 @@ export default function PromptBuilder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'generate', prompt, enhancements }),
     });
+
+    if (!res.ok) {
+      if (res.status === 429) {
+        setErrorMsg("You've reached the limit of 10 prompts per hour. Please try again later.");
+      } else {
+        const { error } = await res.json().catch(() => ({ error: 'Unexpected error occurred.' }));
+        setErrorMsg(error || 'An error occurred while generating your prompt.');
+      }
+      setLoading(false);
+      return;
+    }
     
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();
@@ -298,6 +323,19 @@ export default function PromptBuilder() {
           </div>
         )}
       </div>
+      {errorMsg && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-lg border border-red-200 rounded-lg px-6 py-4 z-50 w-[90%] max-w-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="text-sm text-red-700 font-medium">{errorMsg}</div>
+            <button
+              onClick={() => setErrorMsg('')}
+              className="text-red-400 hover:text-red-600 text-sm font-semibold"
+            >
+              x
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
