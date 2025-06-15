@@ -14,7 +14,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-export async function rateLimit(ip: string, limit = 20, windowSec = 3600) {
+export async function rateLimit(ip: string, limit = 10, windowSec = 3600) {
   const key = `rl:${ip}`;
   const count = await redis.incr(key);
   if (count === 1) {
@@ -138,13 +138,7 @@ function systemPrompt_generatePrompt(userPrompt: string, enhancements: Record<st
 
 export default async function handler(req: Request): Promise<Response> {
   const body = await req.json();
-
   const ip = req.headers.get("x-forwarded-for") || "unknown";
-  const { allowed } = await rateLimit(ip);
-
-  if (!allowed) {
-    return new Response("Rate limit exceeded (10 per hour)", { status: 429 });
-  }
 
   const { mode, prompt, enhancements } = body;
 
@@ -153,6 +147,11 @@ export default async function handler(req: Request): Promise<Response> {
   
 
   if (mode === 'analyze') {
+    const { allowed } = await rateLimit(`analyze:${ip}`, 10, 3600);
+    if (!allowed) {
+      return new Response("Rate limit exceeded for analysis (10 per hour)", { status: 429 });
+    }
+
     const systemPrompt = systemPrompt_analyzePrompt(prompt);
 
     try {
@@ -187,6 +186,11 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   if (mode === 'generate') {
+    const { allowed } = await rateLimit(`generate:${ip}`, 10, 3600);
+    if (!allowed) {
+      return new Response("Rate limit exceeded for generation (10 per hour)", { status: 429 });
+    }
+
     if (!enhancements) return jsonError(400, 'Missing enhancements');
     const systemPrompt = systemPrompt_generatePrompt(prompt, enhancements);
 
