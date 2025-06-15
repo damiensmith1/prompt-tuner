@@ -371,7 +371,7 @@ function ActionInput({ item, value, setValue }: { item: ActionItem; value: any; 
         {arr.length > 0 && (
           <div className="space-y-2">
             {arr.map((entryVal: string, i: number) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <div key={i} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-md">
                 <span className="text-sm text-gray-700">{entryVal}</span>
                 <button
                   className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
@@ -390,7 +390,7 @@ function ActionInput({ item, value, setValue }: { item: ActionItem; value: any; 
             value={entry}
             onChange={e => setEntry(e.target.value)}
             placeholder={item.placeholder}
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+            className="w-full px-3 py-2 bg-orange-50 border border-orange-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 text-gray-900 placeholder-gray-500"
             onKeyDown={e => {
               if (e.key === 'Enter' && entry.trim()) {
                 setValue([...arr, entry.trim()]);
