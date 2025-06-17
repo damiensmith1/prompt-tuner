@@ -132,7 +132,7 @@ export default function PromptBuilder() {
             AI-Powered Prompt Optimization
           </div>
           <h1 className={`font-bold text-gray-900 mb-4 transition-all duration-500 ${
-            isDefaultState ? 'text-5xl lg:text-6xl' : 'text-3xl'
+            isDefaultState ? 'text-5xl lg:text-6xl mt-6' : 'text-3xl'
           }`}>
             {isDefaultState ? (
               <>
