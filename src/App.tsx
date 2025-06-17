@@ -1,4 +1,4 @@
-import { useState, useRef} from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Check } from 'lucide-react';
 
 export type ActionItem =
@@ -17,8 +17,17 @@ export default function PromptBuilder() {
   const [loading, setLoading] = useState(false);
   const [showFix, setShowFix] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // auto resize as user types
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [prompt]);
 
   const analyze = async () => {
     setLoading(true);
@@ -160,13 +169,15 @@ export default function PromptBuilder() {
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
             <div className="relative bg-white/80 backdrop-blur-sm border border-white/30 rounded-2xl shadow-xl overflow-hidden">
               <textarea
+                ref={textareaRef}
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 placeholder={"Enter your draft AI prompt for analysis and improvement..."}
-                className={`w-full pt-8 pr-5 pb-5 pl-5 bg-transparent resize-none focus:outline-none text-gray-900 placeholder-gray-500 ${
-                    isDefaultState ? 'min-h-[0px]' : 'min-h-[120px]'
+                className={`w-full pt-8 pr-5 pl-5 bg-transparent resize-none focus:outline-none text-gray-900 placeholder-gray-500 overflow-hidden ${
+                    isDefaultState ? 'min-h-[80px] pb-10' : 'min-h-[120px] pb-16'
                  }`}
                 disabled={loading || Boolean(finalPrompt)}
+                style={{ height: 'auto' }}
               />
               
               {isDefaultState && (
@@ -186,7 +197,7 @@ export default function PromptBuilder() {
                 </div>
               )}
 
-              <div className={`absolute ${isDefaultState ? 'bottom-6 right-6' : 'bottom-4 right-4'} flex gap-3`}>
+              <div className={`absolute ${isDefaultState ? 'bottom-6 right-6' : 'bottom-4 right-4'} flex gap-3 z-10`}>
                 {finalPrompt && (
                   <button
                     onClick={reset}
