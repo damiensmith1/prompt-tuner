@@ -1,3 +1,131 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+  The palette comes from proof correction rather than the newsroom: cool paper,
+  blue-black ink, and a blue-pencil accent — the colour copy editors marked up
+  in because it dropped out under the camera. Red appears only where something
+  is actually wrong, exactly as it would on a proof.
+*/
+:root {
+  --paper: #fafaf7;
+  --paper-sunk: #f2f2ee;
+  --ink: #17191f;
+  --muted: #6b6f7b;
+  --rule: #e2e2dc;
+  --pencil: #2b4fa8;
+  --pencil-wash: #edf1fb;
+  --mark: #a83b32;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161b;
+    --paper-sunk: #1b1e25;
+    --ink: #e9e9e4;
+    --muted: #8b909c;
+    --rule: #2b2e37;
+    --pencil: #8ba7f0;
+    --pencil-wash: #1b2133;
+    --mark: #d98078;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Serif carries the writing; the sans is only furniture around it. */
+  .prose-serif {
+    font-family: Newsreader, ui-serif, Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    background: var(--pencil);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pencil);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+
+  textarea,
+  input {
+    font: inherit;
+    color: inherit;
+  }
+
+  textarea::placeholder,
+  input::placeholder {
+    color: var(--muted);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  /*
+    One orchestrated moment in the whole page: when the review lands, the
+    margin notes settle in sequence, once. Nothing else moves on its own.
+  */
+  .settle {
+    animation: settle 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The caret that trails streaming text while the rewrite is still arriving. */
+  .caret::after {
+    content: '';
+    display: inline-block;
+    width: 0.5ch;
+    height: 1em;
+    margin-left: 0.1em;
+    background: var(--pencil);
+    vertical-align: -0.12em;
+    animation: blink 1.1s steps(2, start) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settle,
+  .caret::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
