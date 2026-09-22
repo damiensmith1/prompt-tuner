@@ -3,6 +3,7 @@ import { Scorecard } from './components/Scorecard';
 import { Questions } from './components/Questions';
 import { Result } from './components/Result';
 import { analyze, rewrite, TunerError } from './lib/api';
+import { load as loadSaved, save as saveState, clear as clearSaved } from './lib/storage';
 import {
   DIMENSIONS,
   answerToString,
@@ -20,12 +21,17 @@ const EXAMPLES = [
   'Plan a week of dinners',
 ];
 
+/** Read once at module load, so every state initialiser sees the same snapshot. */
+const saved = loadSaved();
+
 export default function App() {
-  const [draft, setDraft] = useState('');
-  const [stage, setStage] = useState<Stage>('draft');
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
-  const [output, setOutput] = useState('');
+  const [draft, setDraft] = useState(saved?.draft ?? '');
+  const [stage, setStage] = useState<Stage>(saved?.stage ?? 'draft');
+  const [analysis, setAnalysis] = useState<Analysis | null>(saved?.analysis ?? null);
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>(
+    saved?.answers ?? {},
+  );
+  const [output, setOutput] = useState(saved?.output ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,6 +47,17 @@ export default function App() {
   }, [draft, stage]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  /*
+    Persist settled state only. A refresh during a rewrite would otherwise
+    restore a half-written prompt as though it were finished, which is worse
+    than losing it — the stream can't be resumed, so the honest thing is to
+    leave the reader on the questions with the button ready again.
+  */
+  useEffect(() => {
+    if (stage === 'rewriting') return;
+    saveState({ draft, stage, analysis, answers, output });
+  }, [draft, stage, analysis, answers, output]);
 
   const runReview = useCallback(async () => {
     if (!draft.trim() || busy) return;
@@ -103,6 +120,7 @@ export default function App() {
 
   const reset = () => {
     abortRef.current?.abort();
+    clearSaved();
     setDraft('');
     setStage('draft');
     setAnalysis(null);
@@ -148,7 +166,10 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-4xl flex-wrap items-baseline gap-x-3 gap-y-1 px-6 pt-8">
-        <span className="prose-serif text-[1.0625rem]">Prompt Tuner</span>
+        <span className="prose-serif flex items-baseline gap-2 text-[1.0625rem]">
+          <img src="/logo.svg" alt="" width="15" height="15" className="translate-y-[2px]" />
+          Prompt Tuner
+        </span>
         <span className="text-micro text-muted">
           Read your draft, then rewrite it properly
         </span>
