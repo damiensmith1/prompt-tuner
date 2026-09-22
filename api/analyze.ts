@@ -81,7 +81,7 @@ export default async function handler(req: Request): Promise<Response> {
     });
 
     if (!message.parsed_output) {
-      return jsonError(502, "The review came back unreadable. Try that again.");
+      return jsonError(502, 'The review came back unreadable. Try that again.');
     }
 
     return jsonResponse(normalise(message.parsed_output));

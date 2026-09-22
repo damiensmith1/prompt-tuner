@@ -31,13 +31,21 @@ export function Result({ raw, streaming, onStartOver, onRevise }: Props) {
     <section aria-live="polite">
       <h2 className="prose-serif text-title">Your tuned prompt</h2>
 
-      <div className="mt-4 border-l-2 border-pencil bg-paper-sunk py-4 pl-5 pr-4">
-        <p
-          className={`prose-serif whitespace-pre-wrap text-draft ${streaming ? 'caret' : ''}`}
-        >
-          {prompt}
+      {streaming && !prompt && (
+        <p className="mt-4 text-small text-muted">
+          <span className="dots">Writing</span>
         </p>
-      </div>
+      )}
+
+      {prompt && (
+        <div className="mt-4 border-l-2 border-pencil bg-paper-sunk py-4 pl-5 pr-4">
+          <p
+            className={`prose-serif whitespace-pre-wrap text-draft ${streaming ? 'caret' : ''}`}
+          >
+            {prompt}
+          </p>
+        </div>
+      )}
 
       {!streaming && prompt && (
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">

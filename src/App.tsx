@@ -30,7 +30,6 @@ export default function App() {
   const [error, setError] = useState('');
 
   const draftRef = useRef<HTMLTextAreaElement>(null);
-  const reviewRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Grow the draft field with its content rather than scrolling inside a box.
@@ -59,9 +58,8 @@ export default function App() {
       const result = await analyze(draft, controller.signal);
       setAnalysis(result);
       setStage('reviewed');
-      requestAnimationFrame(() =>
-        reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-      );
+      // No scrolling here on purpose: the review appears directly below the
+      // draft, so moving the page out from under the reader steals their place.
     } catch (err) {
       if (controller.signal.aborted) return;
       setError(message(err, "The review didn't complete. Try again."));
@@ -190,7 +188,7 @@ export default function App() {
                 disabled={!draft.trim() || busy}
                 className="rounded-sheet bg-ink px-5 py-2.5 text-small text-paper transition-opacity hover:opacity-90 disabled:opacity-30"
               >
-                {busy ? 'Reading…' : 'Read my draft'}
+                {busy ? <span className="dots">Reading</span> : 'Read my draft'}
               </button>
               {!draft && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -217,10 +215,7 @@ export default function App() {
         )}
 
         {analysis && (
-          <div
-            ref={reviewRef}
-            className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-14"
-          >
+          <div className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-14">
             {/* The margin: the grade, kept beside the work rather than on top of it. */}
             <aside className="min-w-0 md:sticky md:top-8 md:self-start">
               <Scorecard analysis={analysis} />
@@ -277,7 +272,7 @@ export default function App() {
                       disabled={busy}
                       className="rounded-sheet bg-ink px-5 py-2.5 text-small text-paper transition-opacity hover:opacity-90 disabled:opacity-30"
                     >
-                      {busy ? 'Rewriting…' : 'Rewrite it'}
+                      {busy ? <span className="dots">Rewriting</span> : 'Rewrite it'}
                     </button>
 
                     {unfilled.length > 0 && (

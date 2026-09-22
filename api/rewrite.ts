@@ -45,8 +45,8 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    // Thinking stays off: this is a writing task with no tool use, and a silent
-    // pause before the first token is worse here than the marginal quality.
+    // Thinking stays off: a silent pause before the first token is worse here
+    // than the marginal quality, and the system prompt carries the quality.
     const stream = client.messages.stream({
       model: REWRITE_MODEL,
       max_tokens: 4000,
