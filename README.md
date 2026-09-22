@@ -1,11 +1,17 @@
 # Prompt Tuner
 
-Quick little utility I made to help me write better prompts in day-to-day AI use.
+Quick little utility I made to help me write better prompts in my day-to-day AI use.
+
 Try it here: https://prompt-tuner.vercel.app/
 
 Paste a draft prompt. It gets read and graded, you're asked only for what's
 genuinely missing, and you get a rewritten prompt back with notes on what
-changed.
+changed. A tune survives a refresh — the review and the result are kept in
+`localStorage` until you start over.
+
+![A draft scored on five dimensions in the margin, with the gaps worth closing listed beside it as questions](screenshots/review.png)
+
+![The tuned prompt the rewrite returns, set beside the same scorecard](screenshots/result.png)
 
 ## How it works
 
